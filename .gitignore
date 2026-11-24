@@ -38,3 +38,4 @@ target/
 
 # Permitir subir la base de datos inicial
 !database/tambo_inicial.db
+!database/tambo_demo.db
