@@ -1,3 +1,4 @@
+
 package com.tambo.inventario.util;
 
 import com.tambo.compartido.modelo.Producto;
@@ -9,6 +10,11 @@ public class StockAlerta {
     }
 
     public String obtenerMensaje(Producto producto, int stockActual) {
+        if (stockActual == 0) {
+            return "El producto " + producto.getNombre()
+                    + " esta agotado.";
+        }
+
         if (necesitaReposicion(producto, stockActual)) {
             return "El producto " + producto.getNombre()
                     + " necesita reposicion.";
@@ -18,10 +24,10 @@ public class StockAlerta {
     }
 
     public int calcularReposicion(Producto producto, int stockActual) {
-        if (stockActual >= producto.getStockMinimo()) {
+        if (stockActual > producto.getStockMinimo()) {
             return 0;
         }
 
-        return producto.getStockMinimo() - stockActual;
+        return producto.getStockMinimo() + 1 - stockActual;
     }
 }

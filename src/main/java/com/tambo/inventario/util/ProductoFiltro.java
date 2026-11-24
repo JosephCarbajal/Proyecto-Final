@@ -1,3 +1,4 @@
+
 package com.tambo.inventario.util;
 
 import com.tambo.compartido.modelo.Producto;
@@ -15,7 +16,7 @@ public class ProductoFiltro {
         for (Producto producto : productos) {
             int stock = stocks.getOrDefault(producto.getId(), 0);
 
-            if (stock <= producto.getStockMinimo()) {
+            if (stock > 0 && stock <= producto.getStockMinimo()) {
                 resultado.add(producto);
             }
         }
@@ -47,7 +48,7 @@ public class ProductoFiltro {
         for (Producto producto : productos) {
             int stock = stocks.getOrDefault(producto.getId(), 0);
 
-            if (stock > 0) {
+            if (stock > producto.getStockMinimo()) {
                 resultado.add(producto);
             }
         }

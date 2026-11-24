@@ -43,30 +43,71 @@ public class ProductoSQLiteRepository {
         return null;
     }
 
-    // Registrar un producto
+    // Registrar producto y crear su inventario inicial
     public void registrarProducto(Producto producto) throws SQLException {
-        String sql = "INSERT INTO productos " +
+        String sqlProducto = "INSERT INTO productos " +
                 "(codigo, nombre, marca, categoria_id, presentacion, " +
                 "precio_centimos, costo_centimos, stock_minimo, " +
                 "requiere_vencimiento, activo, origen_catalogo) " +
                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 
-        try (Connection conexion = ConexionSQLite.conectar();
-             PreparedStatement ps = conexion.prepareStatement(sql)) {
+        try (Connection conexion = ConexionSQLite.conectar()) {
+            conexion.setAutoCommit(false);
 
-            ps.setString(1, producto.getCodigo());
-            ps.setString(2, producto.getNombre());
-            ps.setString(3, producto.getMarca());
-            ps.setInt(4, producto.getCategoriaId());
-            ps.setString(5, producto.getPresentacion());
-            ps.setInt(6, producto.getPrecioCentimos());
-            ps.setInt(7, producto.getCostoCentimos());
-            ps.setInt(8, producto.getStockMinimo());
-            ps.setInt(9, producto.isRequiereVencimiento() ? 1 : 0);
-            ps.setInt(10, producto.isActivo() ? 1 : 0);
-            ps.setString(11, "SIMULADO");
+            try {
+                int productoId;
 
-            ps.executeUpdate();
+                try (PreparedStatement ps = conexion.prepareStatement(
+                        sqlProducto, Statement.RETURN_GENERATED_KEYS)) {
+                    ps.setString(1, producto.getCodigo());
+                    ps.setString(2, producto.getNombre());
+                    ps.setString(3, producto.getMarca());
+                    ps.setInt(4, producto.getCategoriaId());
+                    ps.setString(5, producto.getPresentacion());
+                    ps.setInt(6, producto.getPrecioCentimos());
+                    ps.setInt(7, producto.getCostoCentimos());
+                    ps.setInt(8, producto.getStockMinimo());
+                    ps.setInt(9, producto.isRequiereVencimiento() ? 1 : 0);
+                    ps.setInt(10, producto.isActivo() ? 1 : 0);
+                    ps.setString(11, "SIMULADO");
+                    ps.executeUpdate();
+
+                    try (ResultSet rs = ps.getGeneratedKeys()) {
+                        if (rs.next()) {
+                            productoId = rs.getInt(1);
+                        } else {
+                            try (PreparedStatement consulta = conexion.prepareStatement(
+                                    "SELECT id FROM productos WHERE codigo = ?")) {
+                                consulta.setString(1, producto.getCodigo());
+                                try (ResultSet resultado = consulta.executeQuery()) {
+                                    if (!resultado.next()) {
+                                        throw new SQLException("No se pudo recuperar el producto registrado.");
+                                    }
+                                    productoId = resultado.getInt("id");
+                                }
+                            }
+                        }
+                    }
+                }
+
+                String sqlInventario = "INSERT INTO inventarios " +
+                        "(producto_id, stock_actual, ubicacion, fecha_actualizacion) " +
+                        "VALUES (?, 0, ?, datetime('now','localtime'))";
+
+                try (PreparedStatement ps = conexion.prepareStatement(sqlInventario)) {
+                    ps.setInt(1, productoId);
+                    ps.setString(2, "Almacén principal");
+                    ps.executeUpdate();
+                }
+
+                conexion.commit();
+            } catch (Exception e) {
+                conexion.rollback();
+                if (e instanceof SQLException) {
+                    throw (SQLException) e;
+                }
+                throw new SQLException("No se pudo registrar el producto y su inventario.", e);
+            }
         }
     }
 

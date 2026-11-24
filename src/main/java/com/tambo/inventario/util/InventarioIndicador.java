@@ -1,8 +1,11 @@
+
 package com.tambo.inventario.util;
 
 public class InventarioIndicador {
 
-    public double calcularPorcentajeStockBajo(int totalProductos, int productosStockBajo) {
+    public double calcularPorcentajeStockBajo(
+            int totalProductos, int productosStockBajo) {
+
         if (totalProductos == 0) {
             return 0;
         }
@@ -10,7 +13,9 @@ public class InventarioIndicador {
         return (productosStockBajo * 100.0) / totalProductos;
     }
 
-    public double calcularPorcentajeDisponibilidad(int totalProductos, int productosDisponibles) {
+    public double calcularPorcentajeDisponibilidad(
+            int totalProductos, int productosDisponibles) {
+
         if (totalProductos == 0) {
             return 0;
         }
@@ -30,4 +35,3 @@ public class InventarioIndicador {
         return "Disponible";
     }
 }
-
